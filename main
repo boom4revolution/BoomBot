@@ -1,0 +1,122 @@
+import discord
+import asyncio
+import random
+import requests
+import io
+
+
+client = discord.Client()
+boomid = "324472396138414081"
+
+minutes = 0
+hour = 0
+
+
+@client.event
+async def on_ready():
+    print('Eingeloggt als')
+    print(client.user.name)
+    print(client.user.id)
+    print('-----------------------')
+    await client.change_presence(game=discord.Game(name="Boom's Battlegrounds"))
+
+
+
+@client.event
+async def on_message(message):
+    if message.content.lower().startswith('!test'):
+        await client.send_message(message.channel,"{} Test bestanden!".format(message.author.mention))
+
+    if message.content.lower().startswith('!clear') and message.author.id == boomid:
+        amount = int(message.content[6:])
+        succesfully = client.send_message(message.channel, 'Ich habe erfolgreich {} Nachrichten gelöscht.'.format(amount))
+        await client.purge_from(message.channel, limit=amount)
+        await succesfully
+        await asyncio.sleep(4)
+        await client.purge_from(message.channel, limit=1)
+
+
+    if message.content.lower().startswith('+game') and message.author.id == boomid:
+        game = message.content[6:]
+        await client.change_presence(game=discord.Game(name=game))
+        await client.send_message(message.channel, "```Ich habe meinen Status zu " + game + " geändert```")
+
+    if message.content.lower().startswith('!logo'):
+        response = requests.get("https://i.imgur.com/Gg4orlt.png", stream=True)
+        await client.send_file(message.channel, io.BytesIO(response.raw.read()), filename='bild.png', content='**{} Das ist das Logo von Boom4Revolution!**'.format(message.author.mention))
+
+    if message.content.startswith('!uptime'):
+        await client.send_message(message.channel, "```Ich bin schon {0} Stunde/n und {1} Minuten online auf {2}. ```".format(hour, minutes, message.server))
+
+    if message.content.lower().startswith('!stream') and message.author.id == boomid:
+        embed = discord.Embed(
+            title="https://www.twitch.tv/boom4revolution",
+            colour=0x8f0001,
+            url="https://www.twitch.tv/boom4revolution")
+
+        embed.set_image(
+            url="https://i.imgur.com/1RxhEXG.png")
+        embed.set_thumbnail(
+            url="https://i.imgur.com/Gg4orlt.png")
+        embed.set_author(
+            name="Boom4Revolution streamt jetzt!",
+            url="https://www.twitch.tv/boom4revolution",
+            icon_url="https://i.imgur.com/XanSpq3.png")
+        embed.add_field(
+            name="Spielt gerade",
+            value="Hunt: Showdown")
+        embed.add_field(
+            name="Streamtitel",
+            value="Der neue Hype: Hunt - Showdown")
+        embed.add_field(
+            name="Follower",
+            value="722",
+            inline=True)
+        embed.add_field(
+            name="Alle Aufrufe",
+            value="8,527",
+            inline=True)
+
+        await client.send_message(message.channel, embed=embed)
+        await client.delete_message(message)
+
+    if message.content.lower().startswith('!ladder'):
+         embed = discord.Embed(
+             title="https://www.austrianforce.at/tournament/af-pubg-pro-ladder/", colour=0x8f0001,
+             url="https://www.austrianforce.at/tournament/af-pubg-pro-ladder/",
+             description="Jeden Sonntag dürft ihr euch auf unserem Custom Server gegen andere Teams messen und euch an die Spitze der AF Ladder kämpfen!!!")
+
+         embed.set_image(url="https://i.imgur.com/xDAFoz4.jpg")
+         embed.set_thumbnail(url="https://i.imgur.com/c3Wyl6Z.png")
+         embed.set_author(name="Austrian Foce ProLadder",
+                          url="https://www.austrianforce.at/tournament/af-pubg-pro-ladder/",
+                          icon_url="https://i.imgur.com/c3Wyl6Z.png")
+
+         embed.add_field(name="Aktuelle Season", value="Feb. 2018")
+         embed.add_field(name="Wann ist die Ladder?", value="Jeden Sonntag um 18 Uhr")
+         embed.add_field(name="Anzahl der Matches", value="3 Games pro Sonntag", inline=True)
+
+         embed.add_field(name="Twitch-Channel", value="https://www.twitch.tv/austrianforce", inline=True)
+
+         await client.send_message(message.channel, embed=embed)
+
+
+
+
+
+async def uptime():
+    await client.wait_until_ready()
+    global minutes
+    minutes = 0
+    global hour
+    hour = 0
+    while not client.is_closed:
+        await asyncio.sleep(60)
+        minutes += 1
+        if minutes == 60:
+            minutes = 0
+            hour += 1
+
+
+client.loop.create_task(uptime())
+client.run('NDIwMTUwMTYyMTE2MTgyMDI3.DX7Wag.xZ1FCLZrzXiboafmryFXE4JES5Q')
